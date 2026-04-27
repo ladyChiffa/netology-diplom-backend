@@ -1,0 +1,22 @@
+version: "3.8"
+services:
+  postgres:
+    image: postgres:13.3
+    container_name: postgres-filecloud
+    environment:
+      POSTGRES_DB: "filecloud"
+      POSTGRES_USER: "techie"
+      POSTGRES_PASSWORD: "123456"
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./data/pg_data:/var/lib/postgresql/data
+
+  filecloudapp:
+    build: ./
+    image: 'filecloudapp'
+    ports:
+      - '8081:8081'
+    environment:
+      INST_NUM: 1
+
