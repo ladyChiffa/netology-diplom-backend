@@ -19,16 +19,7 @@ public class CloudFile {
     private String lastChange;
     private int size;
     private String filepath;
-    private String authToken;
-
-
-    public String getAuthToken() {
-        return authToken;
-    }
-
-    public void setAuthToken(String authToken) {
-        this.authToken = authToken;
-    }
+    private Integer userId;
 
     public Integer getId() {
         return id;
@@ -68,5 +59,13 @@ public class CloudFile {
 
     public void setFilepath(String filepath) {
         this.filepath = filepath;
+    }
+
+    public Integer getUserId() {
+        return userId;
+    }
+
+    public void setUserId(Integer userId) {
+        this.userId = userId;
     }
 }

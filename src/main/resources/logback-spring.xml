@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<configuration>
+    <!-- Appender для отправки логов сразу в logstash через tcp  -->
+    <!--
+    <appender name="LOGSTASH"
+              class="net.logstash.logback.appender.LogstashTcpSocketAppender">
+        <destination>localhost:5000</destination>
+        <encoder class="net.logstash.logback.encoder.LogstashEncoder"/>
+    </appender>
+    -->
+
+    <!-- Appender для сохранения в локальный файл (в таком случае нужно дополнительно настроить Filebeat) -->
+    <appender name="FILE"
+              class="ch.qos.logback.core.FileAppender">
+        <file>app/app.log</file>
+        <encoder class="net.logstash.logback.encoder.LogstashEncoder"/>
+    </appender>
+
+    <root level="INFO">
+        <appender-ref ref="FILE"/>
+    </root>
+</configuration>

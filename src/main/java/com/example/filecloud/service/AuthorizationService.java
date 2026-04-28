@@ -24,4 +24,11 @@ public class AuthorizationService {
         return new Token(user.getAuthToken());
     }
 
+    public int getUserIdByToken(String authToken) {
+        Optional<User> user = userRepository.findByAuthToken(authToken);
+        if (user.isEmpty()) throw new BadUserException("Пользователь с таким токеном отсутствует");
+
+        User u = user.get();
+        return u.getId();
+    }
 }

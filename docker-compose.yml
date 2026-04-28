@@ -12,6 +12,59 @@ services:
     volumes:
       - ./data/pg_data:/var/lib/postgresql/data
 
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.12.0
+    container_name: elasticsearch-filecloud
+    environment:
+      - discovery.type=single-node              # работаем не в кластере
+      - xpack.security.enabled=false            # настройка безопасности
+      - xpack.security.enrollment.enabled=false
+    ports:
+      - "9200:9200"
+    volumes:
+      - ./deploy/esdata:/usr/share/elasticsearch/data    # если нужно хранить логи
+    #networks:
+    #  - elk                                     # одинаковый у всех компонент ELK, чтобы они друг друга видели
+  logstash:
+    image: docker.elastic.co/logstash/logstash:8.12.0        # одинаковая версия у всех
+    container_name: logstash-filecloud
+    volumes:
+      - ./configs/logstash/pipelines.yml:/usr/share/logstash/config/pipelines.yml
+      - ./configs/logstash/pipelines:/usr/share/logstash/config/pipelines
+    ports:
+      - "5044:5044/udp"
+      - "5000:5000/tcp"
+    environment:
+      # "LS_LAVA_OPTS=-Xms512m -Xmx512m"
+      XPACK_MONITORING_ENABLED: "false"
+      ES_HOST: "elasticsearch:9200"
+    depends_on:
+      - elasticsearch-filecloud
+    #networks:
+    #  - elk
+  kibana:
+    image: docker.elastic.co/kibana/kibana:8.12.0
+    container_name: kibana-filecloud
+    ports:
+      - "5601:5601"
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+    depends_on:
+      - elasticsearch-filecloud
+
+  filebeat:
+    image: docker.elastic.co/beats/filebeat:8.12.0
+    container_name: filebeat
+    user: root
+    command: filebeat -e -strict.perms=false
+    volumes:
+      - ./app:/var/log/app/:ro
+      - ./configs/filebeat/filebeat.yml:/usr/share/filebeat/filebeat.yml:ro
+    depends_on:
+      - logstash-filecloud
+      - elasticsearch-filecloud
+      - kibana-filecloud
+
   filecloudapp:
     build: ./
     image: 'filecloudapp'

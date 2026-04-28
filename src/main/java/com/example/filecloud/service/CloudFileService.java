@@ -3,9 +3,12 @@ package com.example.filecloud.service;
 import com.example.filecloud.exception.DeleteFileException;
 import com.example.filecloud.exception.SaveFileException;
 import com.example.filecloud.model.CloudFile;
+import com.example.filecloud.model.CloudFileDescription;
 import com.example.filecloud.repository.CloudFileRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.FileSystemResource;
+import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Limit;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
@@ -25,12 +28,12 @@ public class CloudFileService {
     @Value("${filecloud.filedatapath}")
     private String path;
 
-    public List<CloudFile> getList(Integer limit, String authToken) {
-        return fileRepository.findByAuthToken(authToken, Sort.by("lastChange").descending(), Limit.of(limit));
+    public List<CloudFile> getList(Integer limit, int userId) {
+        return fileRepository.findByUserId(userId, Sort.by("lastChange").descending(), Limit.of(limit));
     }
 
-    public CloudFile createFile(MultipartFile file, String authToken) throws IOException {
-        String filepath = System.getProperty("user.dir") + path + "/" + authToken + "-" + file.getOriginalFilename();
+    public CloudFile createFile(MultipartFile file, int userId) throws IOException {
+        String filepath = System.getProperty("user.dir") + path + "/" + userId + "-" + file.getOriginalFilename();
         File f = new File(filepath);
 
         try {
@@ -42,12 +45,12 @@ public class CloudFileService {
         CloudFile dbFile = new CloudFile();
         dbFile.setFilename(file.getOriginalFilename());
         dbFile.setFilepath(filepath);
-        dbFile.setAuthToken(authToken);
+        dbFile.setUserId(userId);
         dbFile.setLastChange(LocalDateTime.now().toString());
         return fileRepository.saveAndFlush(dbFile);
     }
-    public void deleteFile (String filename, String authToken) throws IOException {
-        Optional<CloudFile> file = fileRepository.findByFilenameAndAuthToken(filename, authToken);
+    public void deleteFile (String filename, int userId) throws IOException {
+        Optional<CloudFile> file = fileRepository.findByFilenameAndUserId(filename, userId);
         if (file.isEmpty()) throw new DeleteFileException("Нет у пользователя такого файла");
 
         CloudFile cloudFile = file.get();
@@ -56,4 +59,22 @@ public class CloudFileService {
 
         fileRepository.delete(cloudFile);
     }
+    public void renameFile (String filename, CloudFileDescription newRequisites, int userId) throws IOException {
+        Optional<CloudFile> file = fileRepository.findByFilenameAndUserId(filename, userId);
+        if (file.isEmpty()) throw new DeleteFileException("Нет у пользователя такого файла");
+
+        CloudFile cloudFile = file.get();
+        cloudFile.setFilename(newRequisites.getFilename());
+        fileRepository.saveAndFlush(cloudFile);
+    }
+
+    public Resource downloadFile (String filename, int userId) throws IOException {
+        Optional<CloudFile> file = fileRepository.findByFilenameAndUserId(filename, userId);
+        if (file.isEmpty()) throw new DeleteFileException("Нет у пользователя такого файла");
+
+        CloudFile cloudFile = file.get();
+        Resource resource = new FileSystemResource(cloudFile.getFilepath());
+        return resource;
+    }
+
 }

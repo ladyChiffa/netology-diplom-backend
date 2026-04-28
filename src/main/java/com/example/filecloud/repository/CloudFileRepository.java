@@ -11,7 +11,7 @@ import java.util.Optional;
 
 @Repository
 public interface CloudFileRepository extends JpaRepository<CloudFile, Integer> {
-    public List<CloudFile> findByAuthToken(String authToken, Sort sort, Limit limit);
-    public Optional<CloudFile> findByFilenameAndAuthToken(String filename, String authToken);
+    public List<CloudFile> findByUserId(int userId, Sort sort, Limit limit);
+    public Optional<CloudFile> findByFilenameAndUserId(String filename, int userId);
 }
 
