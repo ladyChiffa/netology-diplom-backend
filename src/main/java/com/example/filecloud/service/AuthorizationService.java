@@ -6,6 +6,8 @@ import com.example.filecloud.model.User;
 import com.example.filecloud.repository.CloudFileRepository;
 import com.example.filecloud.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
@@ -14,6 +16,8 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class AuthorizationService {
     private final UserRepository userRepository;
+    private static final Logger logger = LogManager.getLogger(AuthorizationService.class);
+
 
     public Token getAuthorities(String login, String password) {
         Optional<User> u = userRepository.findByNameAndPassphrase(login, password);
@@ -21,6 +25,8 @@ public class AuthorizationService {
             throw new BadUserException("Не найдена комбинация пользователь/пароль");
         }
         User user = u.get();
+
+        logger.info("Успешный вход");
         return new Token(user.getAuthToken());
     }
 
